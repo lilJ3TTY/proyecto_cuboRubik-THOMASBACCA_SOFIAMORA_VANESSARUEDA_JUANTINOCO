@@ -1,0 +1,56 @@
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+CUBE = []
+CUBE.append([" "," "," ","W","W","W"," "," "," "," "," "," "])
+CUBE.append([" "," "," ","W","W","W"," "," "," "," "," "," "])
+CUBE.append([" "," "," ","W","W","W"," "," "," "," "," "," "])
+CUBE.append(["G","G","G","R","R","R","B","B","B","O","O","O"])
+CUBE.append(["G","G","G","R","R","R","B","B","B","O","O","O"])
+CUBE.append(["G","G","G","R","R","R","B","B","B","O","O","O"])
+CUBE.append([" "," "," ","Y","Y","Y"," "," "," "," "," "," "])
+CUBE.append([" "," "," ","Y","Y","Y"," "," "," "," "," "," "])
+CUBE.append([" "," "," ","Y","Y","Y"," "," "," "," "," "," "])
+
+color_map = {
+    'W': 'white',   # White (Blanco)
+    'Y': 'yellow',  # Yellow (Amarillo)
+    'G': 'green',   # Green (Verde)
+    'R': 'red',     # Red (Rojo)
+    'B': 'blue',    # Blue (Azul)
+    'O': 'orange',  # Orange (Naranja)
+    ' ': None       # Espacio vacío
+}
+
+def dibujar_cubo(datos_cubo):
+    fig, ax = plt.subplots(figsize=(10, 6)) # Tamaño
+
+    filas = len(datos_cubo)
+    columnas = len(datos_cubo[0])
+
+    for r in range(filas):
+        for c in range(columnas):
+            char_color = datos_cubo[r][c]
+            color_web = color_map.get(char_color)
+
+            if color_web:
+                # Se crea un cuadrado (Rectangle) para cada celda con color
+                # (c, filas - 1 - r) ajusta la orientación para que coincida con la lista
+                rect = patches.Rectangle((c, filas - 1 - r), 1, 1,
+                                         linewidth=2,
+                                         edgecolor='black',
+                                         facecolor=color_web)
+
+                ax.add_patch(rect)
+
+    # límites y aspecto
+    ax.set_xlim(0, columnas)
+    ax.set_ylim(0, filas)
+    ax.set_aspect('equal')
+    ax.axis('off') # Ocultar ejes numéricos
+
+    plt.title("Representación Cubo Rubik", fontsize=15)
+    plt.show()
+
+# función para visualizar
+dibujar_cubo(CUBE)
