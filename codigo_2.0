@@ -1,0 +1,362 @@
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import copy
+
+CUBE = [
+    [" "," "," ","W","W","W"," "," "," "," "," "," "],
+    [" "," "," ","W","W","W"," "," "," "," "," "," "],
+    [" "," "," ","W","W","W"," "," "," "," "," "," "],
+    ["G","G","G","R","R","R","B","B","B","O","O","O"],
+    ["G","G","G","R","R","R","B","B","B","O","O","O"],
+    ["G","G","G","R","R","R","B","B","B","O","O","O"],
+    [" "," "," ","Y","Y","Y"," "," "," "," "," "," "],
+    [" "," "," ","Y","Y","Y"," "," "," "," "," "," "],
+    [" "," "," ","Y","Y","Y"," "," "," "," "," "," "]
+]
+
+color_map = {
+    'W': 'white',
+    'Y': 'yellow',
+    'G': 'green',
+    'R': 'red',
+    'B': 'blue',
+    'O': 'orange',
+    ' ': None
+}
+
+def rotar_matriz_90(matriz):
+    return [list(row) for row in zip(*matriz[::-1])]
+
+def rotar_matriz_270(matriz):
+    return [list(row) for row in zip(*matriz)][::-1]
+
+def rotar_matriz_180(matriz):
+    return [row[::-1] for row in matriz[::-1]]
+
+
+
+def U(cubo):
+    cubo = copy.deepcopy(cubo)
+    # Rotar cara blanca (filas 0-2, cols 3-5)
+    cara = [fila[3:6] for fila in cubo[0:3]]
+    cara_rotada = rotar_matriz_90(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i][j+3] = cara_rotada[i][j]
+    
+    # Rotar fila superior de los lados: G->R->B->O->G
+    temp = cubo[3][0:3]
+    cubo[3][0:3] = cubo[3][3:6]   # R -> G
+    cubo[3][3:6] = cubo[3][6:9]   # B -> R
+    cubo[3][6:9] = cubo[3][9:12]  # O -> B
+    cubo[3][9:12] = temp          # G -> O
+    return cubo
+
+def U_prima(cubo):
+    cubo = copy.deepcopy(cubo)
+    cara = [fila[3:6] for fila in cubo[0:3]]
+    cara_rotada = rotar_matriz_270(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i][j+3] = cara_rotada[i][j]
+    
+    temp = cubo[3][0:3]
+    cubo[3][0:3] = cubo[3][9:12]  # O -> G
+    cubo[3][9:12] = cubo[3][6:9]  # B -> O
+    cubo[3][6:9] = cubo[3][3:6]   # R -> B
+    cubo[3][3:6] = temp           # G -> R
+    return cubo
+
+def U2(cubo):
+    return U(U(cubo))
+
+
+
+def D(cubo):
+    cubo = copy.deepcopy(cubo)
+    cara = [fila[3:6] for fila in cubo[6:9]]
+    cara_rotada = rotar_matriz_90(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+6][j+3] = cara_rotada[i][j]
+    
+    # Fila inferior: G->O->B->R->G (inverso a U)
+    temp = cubo[5][0:3]
+    cubo[5][0:3] = cubo[5][9:12]  # O -> G
+    cubo[5][9:12] = cubo[5][6:9]  # B -> O
+    cubo[5][6:9] = cubo[5][3:6]   # R -> B
+    cubo[5][3:6] = temp           # G -> R
+    return cubo
+
+def D_prima(cubo):
+    cubo = copy.deepcopy(cubo)
+    cara = [fila[3:6] for fila in cubo[6:9]]
+    cara_rotada = rotar_matriz_270(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+6][j+3] = cara_rotada[i][j]
+    
+    temp = cubo[5][0:3]
+    cubo[5][0:3] = cubo[5][3:6]   # R -> G
+    cubo[5][3:6] = cubo[5][6:9]   # B -> R
+    cubo[5][6:9] = cubo[5][9:12]  # O -> B
+    cubo[5][9:12] = temp          # G -> O
+    return cubo
+
+def D2(cubo):
+    return D(D(cubo))
+
+def F(cubo):
+    cubo = copy.deepcopy(cubo)
+    # Rotar cara roja (filas 3-5, cols 3-5)
+    cara = [fila[3:6] for fila in cubo[3:6]]
+    cara_rotada = rotar_matriz_90(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+3][j+3] = cara_rotada[i][j]
+    
+    temp = [cubo[2][3], cubo[2][4], cubo[2][5]]
+    cubo[2][3], cubo[2][4], cubo[2][5] = cubo[3][2], cubo[4][2], cubo[5][2]  # G -> W
+    cubo[3][2], cubo[4][2], cubo[5][2] = cubo[6][3], cubo[6][4], cubo[6][5]  # Y -> G
+    cubo[6][3], cubo[6][4], cubo[6][5] = cubo[5][6], cubo[4][6], cubo[3][6]  # B -> Y (invertido)
+    cubo[5][6], cubo[4][6], cubo[3][6] = temp[0], temp[1], temp[2]            # W -> B (invertido)
+    return cubo
+
+def F_prima(cubo):
+    cubo = copy.deepcopy(cubo)
+    cara = [fila[3:6] for fila in cubo[3:6]]
+    cara_rotada = rotar_matriz_270(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+3][j+3] = cara_rotada[i][j]
+    
+    temp = [cubo[2][3], cubo[2][4], cubo[2][5]]
+    cubo[2][3], cubo[2][4], cubo[2][5] = cubo[5][6], cubo[4][6], cubo[3][6]  # B -> W
+    cubo[5][6], cubo[4][6], cubo[3][6] = cubo[6][3], cubo[6][4], cubo[6][5]  # Y -> B
+    cubo[6][3], cubo[6][4], cubo[6][5] = cubo[3][2], cubo[4][2], cubo[5][2]  # G -> Y
+    cubo[3][2], cubo[4][2], cubo[5][2] = temp[0], temp[1], temp[2]            # W -> G
+    return cubo
+
+def F2(cubo):
+    return F(F(cubo))
+
+
+def B(cubo):
+    """Gira la cara trasera (naranja) en sentido horario"""
+    cubo = copy.deepcopy(cubo)
+    # Rotar cara naranja (filas 3-5, cols 9-11)
+    cara = [fila[9:12] for fila in cubo[3:6]]
+    cara_rotada = rotar_matriz_90(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+3][j+9] = cara_rotada[i][j]
+    
+
+    temp = [cubo[0][3], cubo[0][4], cubo[0][5]]
+    cubo[0][3], cubo[0][4], cubo[0][5] = cubo[5][8], cubo[4][8], cubo[3][8]  # B -> W (invertido)
+    cubo[3][8], cubo[4][8], cubo[5][8] = cubo[8][3], cubo[8][4], cubo[8][5]  # Y -> B
+    cubo[8][3], cubo[8][4], cubo[8][5] = cubo[3][0], cubo[4][0], cubo[5][0]  # G -> Y
+    cubo[3][0], cubo[4][0], cubo[5][0] = temp[0], temp[1], temp[2]            # W -> G (invertido)
+    return cubo
+
+def B_prima(cubo):
+  
+    cubo = copy.deepcopy(cubo)
+    cara = [fila[9:12] for fila in cubo[3:6]]
+    cara_rotada = rotar_matriz_270(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+3][j+9] = cara_rotada[i][j]
+    
+    temp = [cubo[0][3], cubo[0][4], cubo[0][5]]
+    cubo[0][3], cubo[0][4], cubo[0][5] = cubo[3][0], cubo[4][0], cubo[5][0]  # G -> W
+    cubo[3][0], cubo[4][0], cubo[5][0] = cubo[8][3], cubo[8][4], cubo[8][5]  # Y -> G
+    cubo[8][3], cubo[8][4], cubo[8][5] = cubo[5][8], cubo[4][8], cubo[3][8]  # B -> Y (invertido)
+    cubo[5][8], cubo[4][8], cubo[3][8] = temp[0], temp[1], temp[2]            # W -> B (invertido)
+    return cubo
+
+def B2(cubo):
+    return B(B(cubo))
+
+
+def L(cubo):
+    cubo = copy.deepcopy(cubo)
+    # Rotar cara verde (filas 3-5, cols 0-2)
+    cara = [fila[0:3] for fila in cubo[3:6]]
+    cara_rotada = rotar_matriz_90(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+3][j] = cara_rotada[i][j]
+    
+    temp = [cubo[0][3], cubo[1][3], cubo[2][3]]
+    cubo[0][3], cubo[1][3], cubo[2][3] = cubo[3][11], cubo[4][11], cubo[5][11]  # O -> W
+    cubo[3][11], cubo[4][11], cubo[5][11] = cubo[8][3], cubo[7][3], cubo[6][3]  # Y -> O (invertido)
+    cubo[8][3], cubo[7][3], cubo[6][3] = cubo[5][3], cubo[4][3], cubo[3][3]    # R -> Y (invertido)
+    cubo[5][3], cubo[4][3], cubo[3][3] = temp[0], temp[1], temp[2]              # W -> R
+    return cubo
+
+def L_prima(cubo):
+    cubo = copy.deepcopy(cubo)
+    cara = [fila[0:3] for fila in cubo[3:6]]
+    cara_rotada = rotar_matriz_270(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+3][j] = cara_rotada[i][j]
+    
+    temp = [cubo[0][3], cubo[1][3], cubo[2][3]]
+    cubo[0][3], cubo[1][3], cubo[2][3] = cubo[3][3], cubo[4][3], cubo[5][3]    # R -> W
+    cubo[3][3], cubo[4][3], cubo[5][3] = cubo[6][3], cubo[7][3], cubo[8][3]    # Y -> R
+    cubo[6][3], cubo[7][3], cubo[8][3] = cubo[5][11], cubo[4][11], cubo[3][11] # O -> Y (invertido)
+    cubo[5][11], cubo[4][11], cubo[3][11] = temp[0], temp[1], temp[2]          # W -> O (invertido)
+    return cubo
+
+def L2(cubo):
+    return L(L(cubo))
+
+
+
+def R(cubo):
+  
+    cubo = copy.deepcopy(cubo)
+    # Rotar cara azul (filas 3-5, cols 6-8)
+    cara = [fila[6:9] for fila in cubo[3:6]]
+    cara_rotada = rotar_matriz_90(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+3][j+6] = cara_rotada[i][j]
+    
+    temp = [cubo[0][5], cubo[1][5], cubo[2][5]]
+    cubo[0][5], cubo[1][5], cubo[2][5] = cubo[3][5], cubo[4][5], cubo[5][5]    # R -> W
+    cubo[3][5], cubo[4][5], cubo[5][5] = cubo[6][5], cubo[7][5], cubo[8][5]    # Y -> R
+    cubo[6][5], cubo[7][5], cubo[8][5] = cubo[5][9], cubo[4][9], cubo[3][9]    # O -> Y (invertido)
+    cubo[5][9], cubo[4][9], cubo[3][9] = temp[0], temp[1], temp[2]              # W -> O (invertido)
+    return cubo
+
+def R_prima(cubo):
+    cubo = copy.deepcopy(cubo)
+    cara = [fila[6:9] for fila in cubo[3:6]]
+    cara_rotada = rotar_matriz_270(cara)
+    for i in range(3):
+        for j in range(3):
+            cubo[i+3][j+6] = cara_rotada[i][j]
+    
+    temp = [cubo[0][5], cubo[1][5], cubo[2][5]]
+    cubo[0][5], cubo[1][5], cubo[2][5] = cubo[5][9], cubo[4][9], cubo[3][9]    # O -> W (invertido)
+    cubo[3][9], cubo[4][9], cubo[5][9] = cubo[6][5], cubo[7][5], cubo[8][5]    # Y -> O
+    cubo[6][5], cubo[7][5], cubo[8][5] = cubo[3][5], cubo[4][5], cubo[5][5]    # R -> Y
+    cubo[3][5], cubo[4][5], cubo[5][5] = temp[0], temp[1], temp[2]              # W -> R
+    return cubo
+
+def R2(cubo):
+    return R(R(cubo))
+
+
+def dibujar_cubo(datos_cubo, titulo="Cubo Rubik", ax=None):
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(8, 6))
+    else:
+        ax.clear()
+    
+    filas = len(datos_cubo)
+    columnas = len(datos_cubo[0])
+    
+    for r in range(filas):
+        for c in range(columnas):
+            char_color = datos_cubo[r][c]
+            color_web = color_map.get(char_color)
+            
+            if color_web:
+                rect = patches.Rectangle((c, filas - 1 - r), 1, 1,
+                                         linewidth=2,
+                                         edgecolor='black',
+                                         facecolor=color_web)
+                ax.add_patch(rect)
+            else:
+              
+                rect = patches.Rectangle((c, filas - 1 - r), 1, 1,
+                                         linewidth=1,
+                                         edgecolor='lightgray',
+                                         facecolor='#f0f0f0',
+                                         linestyle='--')
+                ax.add_patch(rect)
+    
+    ax.set_xlim(0, columnas)
+    ax.set_ylim(0, filas)
+    ax.set_aspect('equal')
+    ax.axis('off')
+    ax.set_title(titulo, fontsize=14, fontweight='bold')
+    
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+    return ax
+
+
+# EJECUCIÓN
+MOVIMIENTOS = [
+    (U, "U (Up - horario)"),
+    (U_prima, "U' (Up - antihorario)"),
+    (U2, "U2 (Up - 180°)"),
+    (D, "D (Down - horario)"),
+    (D_prima, "D' (Down - antihorario)"),
+    (D2, "D2 (Down - 180°)"),
+    (F, "F (Front - horario)"),
+    (F_prima, "F' (Front - antihorario)"),
+    (F2, "F2 (Front - 180°)"),
+    (B, "B (Back - horario)"),
+    (B_prima, "B' (Back - antihorario)"),
+    (B2, "B2 (Back - 180°)"),
+    (L, "L (Left - horario)"),
+    (L_prima, "L' (Left - antihorario)"),
+    (L2, "L2 (Left - 180°)"),
+    (R, "R (Right - horario)"),
+    (R_prima, "R' (Right - antihorario)"),
+    (R2, "R2 (Right - 180°)"),
+]
+
+# Crear figura con grid 6x3 (18 movimientos)
+fig, axes = plt.subplots(6, 3, figsize=(15, 24))
+fig.suptitle('Los 18 Movimientos del Cubo Rubik', fontsize=18, fontweight='bold', y=0.995)
+
+cubo_actual = copy.deepcopy(CUBE)
+
+for idx, (movimiento, nombre) in enumerate(MOVIMIENTOS):
+    fila = idx // 3
+    col = idx % 3
+    ax = axes[fila, col]
+    
+    # Aplicar movimiento
+    cubo_actual = movimiento(cubo_actual)
+    
+    # Dibujar
+    dibujar_cubo(cubo_actual, titulo=nombre, ax=ax)
+
+plt.tight_layout()
+plt.subplots_adjust(top=0.96)
+plt.show()
+
+def mostrar_secuencia(cubo_inicial, movimientos_seleccionados, nombres=None):
+    """
+    Muestra una secuencia de movimientos uno por uno.
+    movimientos_seleccionados: lista de funciones de movimiento
+    """
+    cubo = copy.deepcopy(cubo_inicial)
+    
+    fig, axes = plt.subplots(1, len(movimientos_seleccionados) + 1, figsize=(4*(len(movimientos_seleccionados)+1), 4))
+    if len(movimientos_seleccionados) == 0:
+        axes = [axes]
+    elif len(movimientos_seleccionados) == 1:
+        axes = [axes[0], axes[1]] if hasattr(axes, '__len__') else [axes]
+    
+    # Estado inicial
+    if len(movimientos_seleccionados) > 0:
+        dibujar_cubo(cubo, titulo="Inicial", ax=axes[0])
+        
+        for i, mov in enumerate(movimientos_seleccionados):
+            cubo = mov(cubo)
+            titulo = nombres[i] if nombres and i < len(nombres) else f"Paso {i+1}"
+            dibujar_cubo(cubo, titulo=titulo, ax=axes[i+1])
+    
+    plt.tight_layout()
+    plt.show()
+    return cubo
